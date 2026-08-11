@@ -1,0 +1,23 @@
+[
+  {
+    "arguments": [
+      "/home/dev/.local/bin/sh-elf-gcc",
+      "-DFXCP",
+      "-DTARGET_FXCP",
+      "-fno-builtin",
+      "-Wa,--dsp",
+      "-Wall",
+      "-Wextra",
+      "-Os",
+      "-g",
+      "-flto=auto",
+      "-c",
+      "-o",
+      "CMakeFiles/myaddin.dir/src/main.c.obj",
+      "/workspaces/mario-kart-casio/my-addin/src/main.c"
+    ],
+    "directory": "/workspaces/mario-kart-casio/my-addin/build-cp",
+    "file": "/workspaces/mario-kart-casio/my-addin/src/main.c",
+    "output": "/workspaces/mario-kart-casio/my-addin/build-cp/CMakeFiles/myaddin.dir/src/main.c.obj"
+  }
+]
