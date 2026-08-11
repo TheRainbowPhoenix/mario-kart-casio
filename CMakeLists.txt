@@ -25,11 +25,12 @@ set(SOURCES
 if (DEFINED FXSDK_PLATFORM_LONG)
   set(SOURCES ${SOURCES}
     src/platforms/gint.c
-    # src/tilemap.S
+    src/tilemap.S
   )
 
   include(GenerateG1A)
   include(GenerateG3A)
+  include(GenerateHH3)
   include(Fxconv)
   find_package(Gint 2.1 REQUIRED)
   find_package(LibProf 2.1 REQUIRED)
@@ -42,6 +43,78 @@ if (DEFINED FXSDK_PLATFORM_LONG)
     # assets-fx/example.png
   )
   set(ASSETS_cg
+    # assets-cg/example.png
+    # assets-cg/bg.png
+
+    assets-cg/bg.png
+    assets-cg/bg_sunset.png
+    assets-cg/skygarden_bg.png
+    assets-cg/bush.png
+    assets-cg/boost_0.png
+    assets-cg/boost_1.png
+    assets-cg/boost_2.png
+    assets-cg/boost_3.png
+    assets-cg/boost_4.png
+    # assets-cg/bush.png
+    # assets-cg/castle.png
+    assets-cg/countdown_0.png
+    assets-cg/countdown_1.png
+    assets-cg/countdown_2.png
+    assets-cg/countdown_3.png
+    assets-cg/fire_0.png
+    assets-cg/fire_1.png
+    assets-cg/fire_2.png
+    assets-cg/font_0.png
+    assets-cg/font_1.png
+    assets-cg/font_10.png
+    assets-cg/font_2.png
+    assets-cg/font_3.png
+    assets-cg/font_4.png
+    assets-cg/font_5.png
+    assets-cg/font_6.png
+    assets-cg/font_7.png
+    assets-cg/font_8.png
+    assets-cg/font_9.png
+    assets-cg/kart_0.png
+    assets-cg/kart_1.png
+    assets-cg/kart_10.png
+    assets-cg/kart_11.png
+    assets-cg/kart_12.png
+    assets-cg/kart_13.png
+    assets-cg/kart_14.png
+    assets-cg/kart_15.png
+    assets-cg/kart_16.png
+    assets-cg/kart_17.png
+    assets-cg/kart_18.png
+    assets-cg/kart_19.png
+    assets-cg/kart_2.png
+    assets-cg/kart_20.png
+    assets-cg/kart_21.png
+    assets-cg/kart_3.png
+    assets-cg/kart_4.png
+    assets-cg/kart_5.png
+    assets-cg/kart_6.png
+    assets-cg/kart_7.png
+    assets-cg/kart_8.png
+    assets-cg/kart_9.png
+    assets-cg/lap_0.png
+    assets-cg/lap_1.png
+    assets-cg/lap_2.png
+    assets-cg/loop.png
+    assets-cg/shadow1.png
+    assets-cg/shadow2.png
+    assets-cg/smallboost_0.png
+    assets-cg/smallboost_1.png
+    assets-cg/smallboost_2.png
+    assets-cg/smallboost_3.png
+    assets-cg/smallboost_4.png
+    assets-cg/smoke_0.png
+    assets-cg/smoke_1.png
+    assets-cg/smoke_2.png
+    assets-cg/tree.png
+  )
+
+  set(ASSETS_cp
     # assets-cg/example.png
     # assets-cg/bg.png
 
@@ -126,6 +199,8 @@ if (DEFINED FXSDK_PLATFORM_LONG)
   elseif("${FXSDK_PLATFORM_LONG}" STREQUAL fxCG50)
     generate_g3a(TARGET mariokart OUTPUT "MarioKart.g3a"
       NAME "Mario Kart" ICONS assets-cg/icon-uns.png assets-cg/icon-sel.png)
+  elseif("${FXSDK_PLATFORM_LONG}" STREQUAL fxCP)
+      generate_hh3(TARGET mariokart OUTPUT "mariokart.hh3")
   endif()
 
 else()

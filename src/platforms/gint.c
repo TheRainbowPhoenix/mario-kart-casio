@@ -1,16 +1,19 @@
 #include "./gint.h"
 
-#include <gint/keyboard.h>
-#include <gint/gint.h>
-#include <gint/drivers/r61524.h>
-#include <gint/rtc.h>
-#include <gint/display.h>
-#include <gint/timer.h>
 #include <gint/clock.h>
+#include <gint/display.h>
+#ifdef FXCP
+#include <gint/drivers/r61523.h>
+#endif
+#include <gint/drivers/r61524.h> // used for DMA
+#include <gint/gint.h>
+#include <gint/keyboard.h>
+#include <gint/rtc.h>
+#include <gint/timer.h>
 #include <stdbool.h>
 
+#include "../display-cp.h"
 #include "../main.h"
-#include "gint/display-cg.h"
 #include "gint/image.h"
 
 #ifdef PROFILING_ENABLED
@@ -18,10 +21,10 @@
 #endif
 
 void platformInit() {
-  // clock_set_speed(CLOCK_SPEED_F5);
-  #ifdef PROFILING_ENABLED
+// clock_set_speed(CLOCK_SPEED_F5);
+#ifdef PROFILING_ENABLED
   prof_init();
-  #endif
+#endif
 }
 
 static int callback_tick(volatile int *newFrameNeeded) {
@@ -31,12 +34,15 @@ static int callback_tick(volatile int *newFrameNeeded) {
 
 void runMainLoop(void (*loop)(), int fps) {
   static volatile int newFrameNeeded = false;
-  int t = timer_configure(TIMER_ANY, 1000000 / fps, GINT_CALL(callback_tick, &newFrameNeeded));
-  if (t >= 0) timer_start(t);
+  int t = timer_configure(TIMER_ANY, 1000000 / fps,
+                          GINT_CALL(callback_tick, &newFrameNeeded));
+  if (t >= 0)
+    timer_start(t);
 
   while (1) {
     if (frameCapEnabled) {
-      while (!newFrameNeeded) sleep();
+      while (!newFrameNeeded)
+        sleep();
     }
     newFrameNeeded = 0;
     loop();
@@ -57,17 +63,25 @@ void updateKeys() {
 #define alignTo4Up(n) (((n) + 3) & ~3)
 
 void displayUpdateBox(int x, int y, int w, int h) {
+#ifdef FXCP
+  r61523_display_rect(gint_vram, x, x + w - 1, y, y + h - 1);
+#else
   r61524_display_rect(gint_vram, x, x + w - 1, y, y + h - 1);
+#endif
 }
 
 void displayUpdate(int minY, int maxY) {
   minY = alignTo4Down(minY);
-  #ifdef PROFILING_ENABLED
-  #define method R61524_DMA_WAIT
-  #else
-  #define method R61524_DMA
-  #endif
+#ifdef PROFILING_ENABLED
+#define method R61524_DMA_WAIT
+#else
+#define method R61524_DMA
+#endif
+#ifdef FXCP
+  r61523_display(gint_vram);
+#else
   r61524_display(gint_vram, minY, alignTo4Up(maxY - minY), method);
+#endif
 }
 
 void drawText(int x, int y, const char *text) {
@@ -75,19 +89,18 @@ void drawText(int x, int y, const char *text) {
   // displayUpdate(y, y + 12);
 }
 
-int getTimeMS(void) {
-  return rtc_ticks() * 1000 / 128;
-}
+int getTimeMS(void) { return rtc_ticks() * 1000 / 128; }
 
 int check_key(int key) {
-  if (key == -1) return 0;
+  if (key == -1)
+    return 0;
   return keydown(key);
 }
 
 struct image {
   int xOffset;
   int yOffset;
-  const bopti_image_t* data;
+  const bopti_image_t *data;
 };
 
 void draw(const struct image *img, int x, int y) {
@@ -98,25 +111,32 @@ void draw_flipped(const struct image *img, int x, int y) {
   // dimage(x + img->xOffset, y + img->yOffset, img->data);
   dimage_p8_effect(x + img->xOffset, y + img->yOffset, img->data, IMAGE_HFLIP);
 }
-// void draw_loop_x(const struct image* data, int x, int y, int xOffset, int drawWidth);
+// void draw_loop_x(const struct image* data, int x, int y, int xOffset, int
+// drawWidth);
 
-void draw_partial(const struct image *img, int x, int y, int sx, int sy, int w, int h) {
-  dsubimage(x + img->xOffset + sx, y + img->yOffset + sy, img->data, sx, sy, w, h, 0);
+void draw_partial(const struct image *img, int x, int y, int sx, int sy, int w,
+                  int h) {
+  dsubimage(x + img->xOffset + sx, y + img->yOffset + sy, img->data, sx, sy, w,
+            h, 0);
 }
 
-void draw_partial_flipped(const struct image *img, int x, int y, int sx, int sy, int w, int h) {
-  dsubimage_p8_effect(x + img->xOffset + sx, y + img->yOffset + sy, img->data, sx, sy, w, h, IMAGE_HFLIP);
+void draw_partial_flipped(const struct image *img, int x, int y, int sx, int sy,
+                          int w, int h) {
+  dsubimage_p8_effect(x + img->xOffset + sx, y + img->yOffset + sy, img->data,
+                      sx, sy, w, h, IMAGE_HFLIP);
 }
 
-void draw_scaled(const struct image *img, int x, int y, float scaleX, float scaleY) {
+void draw_scaled(const struct image *img, int x, int y, float scaleX,
+                 float scaleY) {
   // Create an image_linear_map
   struct image_linear_map map;
   image_scale(img->data, scaleX * (1 << 16), scaleY * (1 << 16), &map);
   // If x is negative, cut the image off on the left.
-  const image_t* newData;
+  const image_t *newData;
   if (x < 0) {
-  // image_sub(const image_t *src, int x, int y, int w, int h, image_t *dst)
-    newData = image_sub(img->data, -x, 0, img->data->width + x, img->data->height);
+    // image_sub(const image_t *src, int x, int y, int w, int h, image_t *dst)
+    newData =
+        image_sub(img->data, -x, 0, img->data->width + x, img->data->height);
   } else {
     newData = img->data;
   }
@@ -125,10 +145,6 @@ void draw_scaled(const struct image *img, int x, int y, float scaleX, float scal
   image_linear(newData, image_at(image_create_vram(), x, y), &map);
 }
 
-int get_width(const struct image* img) {
-  return img->data->width;
-}
+int get_width(const struct image *img) { return img->data->width; }
 
-int get_height(const struct image* img) {
-  return img->data->height;
-}
+int get_height(const struct image *img) { return img->data->height; }

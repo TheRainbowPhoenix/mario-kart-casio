@@ -1,12 +1,12 @@
 #include "./3d.h"
 
-#include "./platform.h"
 #include "./main.h"
-#include "./tilemap.h"
 #include "./maths.h"
+#include "./platform.h"
+#include "./tilemap.h"
 
-#include <stdio.h>
 #include <limits.h>
+#include <stdio.h>
 
 #include "../data-headers/generated_lut.h"
 #include "platforms/gint.h"
@@ -27,7 +27,8 @@ int hFovModifier = 1 << 12;
 // void __attribute__ ((noinline, hot)) normalFov() {
 //   int angleCos = fpcos(angle);
 //   int angleSin = fpsin(angle);
-//   for (unsigned short y = horizon + 2; y < /*LCD_HEIGHT_PX*/lowResCutoff; y++) {
+//   for (unsigned short y = horizon + 2; y < /*LCD_HEIGHT_PX*/lowResCutoff;
+//   y++) {
 //     int dist = newLut[y - horizon];
 //     int wx = -(LCD_WIDTH_PX / 2) / 2 * dist;
 //     for (unsigned short x = 0; x < LCD_WIDTH_PX / 2; x++) {
@@ -73,7 +74,8 @@ int hFovModifier = 1 << 12;
 //       // setPixel(x * 2 + 1, y, col);
 //       // Cast to an unsigned int array so two pixels are stored at once.
 //       ((unsigned int *)VRAM)[y * (LCD_WIDTH_PX / 2) + x] = (col << 16 | col);
-//       ((unsigned int *)VRAM)[(y + 1) * (LCD_WIDTH_PX / 2) + x] = (col << 16 | col);
+//       ((unsigned int *)VRAM)[(y + 1) * (LCD_WIDTH_PX / 2) + x] = (col << 16 |
+//       col);
 
 //       wx += dist;
 //     }
@@ -92,7 +94,7 @@ int hFovModifier = 1 << 12;
 //   }
 // }
 
-void screenToWorldSpace(int x, int y, int* worldX, int* worldY) {
+void screenToWorldSpace(int x, int y, int *worldX, int *worldY) {
   int angleCos = fpcos(angle);
   int angleSin = fpsin(angle);
 
@@ -141,7 +143,7 @@ void screenToWorldSpace(int x, int y, int* worldX, int* worldY) {
 // }
 
 // TODO: Take FOV into account
-void worldToScreenSpace(int worldX, int worldY, int* x, int* y, int* dist) {
+void worldToScreenSpace(int worldX, int worldY, int *x, int *y, int *dist) {
   worldX <<= 2;
   worldY <<= 2;
   worldX -= xOffset;
@@ -195,8 +197,6 @@ void worldToScreenSpace(int worldX, int worldY, int* x, int* y, int* dist) {
   // int numDist2s = ((x2 << 6) - wx) / (dist2 >> 6);
   // numDist2s >>= 6;
 
-
-
   // int numDist2s = ((x2 << 6) - wx) / dist2;
   // minDistIndex = numDist2s /*- 1*/;
 
@@ -246,7 +246,7 @@ void worldToScreenSpace(int worldX, int worldY, int* x, int* y, int* dist) {
 //   for (unsigned short y = horizon + 2; y < LCD_HEIGHT_PX; y++) {
 //     int dist = newLut[y - horizon];
 //     int wx = -(LCD_WIDTH_PX / 2) / 2 * dist;
-    
+
 //     int y2 = dist;
 
 //     int newX = (wx * (angleCos >> 6)) + (y2 * angleSin);
@@ -266,10 +266,10 @@ void worldToScreenSpace(int worldX, int worldY, int* x, int* y, int* dist) {
 // }
 
 // TODO: Put this in fast on-chip memory?
-unsigned int* vramLine;
+unsigned int *vramLine;
 
 #ifndef USE_ASM
-void draw3DLine(int x, int y, int dx, int dy/*, unsigned int* vramLine*/) {
+void draw3DLine(int x, int y, int dx, int dy /*, unsigned int* vramLine*/) {
   for (unsigned short x2 = 0; x2 < LCD_WIDTH_PX / 2; x2++) {
     color_t col = samplePixel(x >> 16, y >> 16);
     *vramLine = (col << 16 | col);
@@ -281,32 +281,33 @@ void draw3DLine(int x, int y, int dx, int dy/*, unsigned int* vramLine*/) {
 }
 #endif
 
-void __attribute__ ((noinline)) fullRes() {
+void __attribute__((noinline)) fullRes() {
   int angleCos = fpcos(angle);
   int angleSin = fpsin(angle);
   for (unsigned short y = horizon + 2; y < LCD_HEIGHT_PX; y++) {
     int dist = newLut[y - horizon];
     int wx = -(LCD_WIDTH_PX / 2) / 2 * dist;
-    
+
     int y2 = dist;
 
     int newX = (wx * (angleCos >> 6)) + (y2 * angleSin);
     int newY = (y2 * angleCos) - (wx * (angleSin >> 6));
 
-    int dx =  (dist * (angleCos >> 6));
+    int dx = (dist * (angleCos >> 6));
     int dy = -(dist * (angleSin >> 6));
 
     vramLine = (unsigned int *)VRAM + y * (LCD_WIDTH_PX / 2);
-    draw3DLine(newX, newY, dx, dy/*, vramLine*/);
+    draw3DLine(newX, newY, dx, dy /*, vramLine*/);
   }
 }
 
 #define normalFov fullRes
 
-void __attribute__ ((noinline)) changedFov() {
+void __attribute__((noinline)) changedFov() {
   int angleCos = fpcos(angle);
   int angleSin = fpsin(angle);
-  for (unsigned short y = horizon + 2; y < /*LCD_HEIGHT_PX*/lowResCutoff; y++) {
+  for (unsigned short y = horizon + 2; y < /*LCD_HEIGHT_PX*/ lowResCutoff;
+       y++) {
     int dist = newLut[y - horizon];
     int dx = (dist * hFovModifier) >> 12;
     int wx = -(LCD_WIDTH_PX / 2) / 2;
@@ -355,14 +356,15 @@ void __attribute__ ((noinline)) changedFov() {
       // setPixel(x * 2 + 1, y, col);
       // Cast to an unsigned int array so two pixels are stored at once.
       ((unsigned int *)VRAM)[y * (LCD_WIDTH_PX / 2) + x] = (col << 16 | col);
-      ((unsigned int *)VRAM)[(y + 1) * (LCD_WIDTH_PX / 2) + x] = (col << 16 | col);
+      ((unsigned int *)VRAM)[(y + 1) * (LCD_WIDTH_PX / 2) + x] =
+          (col << 16 | col);
 
       wx += dx;
     }
   }
 }
 
-void __attribute__ ((noinline)) draw3D(bool highQuality) {
+void __attribute__((noinline)) draw3D(bool highQuality) {
   if (hFovModifier == 1 << 12) {
     if (highQuality) {
       fullRes();
